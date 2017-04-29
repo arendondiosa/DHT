@@ -25,5 +25,5 @@ pip install hashlib
 ### node
 
 ```bash
-python node.py <ip>
+python node.py <my_ip>:<port> <other_node_ip>:<port>
 ```

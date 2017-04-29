@@ -1,11 +1,12 @@
 #!/usr/bin/python
 
-import random
-import sys
-import time
 import hashlib
 import json
+import random
 import string
+import sys
+import time
+
 import numpy
 import zmq
 
@@ -30,19 +31,24 @@ def get_id(my_ip):
     print ip
     node_id = fnode.sha256(rnd)
 
-    # f = open('config.json', 'w')
-    # f.write(json.dumps(d, sort_keys=True,
-    #                    indent=2))  # python will convert \n to os.linesep
-    # f.close()
-    #
-
 
 # Get next nodes in the ring
 def get_edges(some_ip):
     global lower_bound, upper_bound
     if some_ip:
         # print some_ip
-        print fnode.create_req(ip, port, 'search', some_ip)
+        req = fnode.create_req(ip, port, 'add', some_ip)
+        req_json = json.loads(req)
+        print 'Connecting to ' + req_json['to'] + '...'
+        socket_send = context.socket(zmq.REQ)
+        socket_send.connect('tcp://' + req_json['to'])
+        print("Sending request %s ..." % req)
+        # socket_send.send("Hello")
+        socket_send.send(req)
+
+        message = socket_send.recv()
+        print message
+
     else:  # If I'm the first node in the ring
         print 'Soy el unico'
         lower_bound = upper_bound = node_id
@@ -75,13 +81,20 @@ def main():
         while True:
             #  Wait for next request from client
             message = socket.recv()
-            print("Received request: %s" % message)
-
+            req_json = json.loads(str(message))
+            print str(message)
             #  Do some 'work'
+            if req_json['req'] == 'add':
+                socket.send('add')
+                print fnode.check_rank(
+                    node_id,
+                    lower_bound, )
+            else:
+                socket.send("Waiting...")
+
             time.sleep(1)
 
             #  Send reply back to client
-            socket.send(b"World")
 
 
 if __name__ == '__main__':
