@@ -17,6 +17,8 @@ node_id = ''
 hash_table = {}
 lower_bound = ''  # predecessor's id
 upper_bound = ''  # successor's id
+lower_bound_ip = ''  # predecessor's id
+upper_bound_ip = ''  # successor's id
 ip = ''
 port = ''
 context = zmq.Context()
@@ -35,7 +37,7 @@ def get_id(my_ip):
 
 # Get next nodes in the ring
 def get_edges(some_ip):
-    global lower_bound, upper_bound
+    global lower_bound, upper_bound, lower_bound_ip, upper_bound_ip
     if some_ip:
         # print some_ip
         req = fnode.create_req('add', ip + ':' + port, some_ip,
@@ -54,40 +56,51 @@ def get_edges(some_ip):
     else:  # If I'm the first node in the ring
         print 'Soy el unico'
         lower_bound = upper_bound = node_id
+        lower_bound_ip = upper_bound_ip = ip + ':' + port
 
 
 def add(req):
-    global node_id, lower_bound, upper_bound
+    global node_id, lower_bound_ip, upper_bound_ip, lower_bound, upper_bound
     socket.send('add')
-    # print req['msg']['id'][0:7]
     check = fnode.check_rank(node_id, lower_bound, req['msg']['id'])
     print check
     # Check if a new node is mine
     if check == 0:
         socket_send.connect('tcp://' + req['msg']['origin'])
-        res = fnode.create_req(
-            'update', ip + ':' + port, req['msg']['origin'],
-            {'lower_bound': lower_bound,
-             'upper_bound': node_id})
+        res = fnode.create_req('update', ip + ':' + port, req['msg']['origin'],
+                               {
+                                   'lower_bound': lower_bound,
+                                   'lower_bound_ip': lower_bound_ip,
+                                   'upper_bound': node_id,
+                                   'upper_bound_ip': ip + ':' + port
+                               })
         socket_send.send(res)
 
         if node_id == upper_bound:
             upper_bound = req['msg']['id']
+            upper_bound_ip = req['msg']['origin']
         lower_bound = req['msg']['id']
-        fnode.node_info(node_id, lower_bound, upper_bound)
+        lower_bound_ip = req['msg']['origin']
+        fnode.node_info(node_id, lower_bound_ip, upper_bound_ip, lower_bound,
+                        upper_bound)
     elif check == 1:
-        add()
+        req = fnode.create_req('add', ip + ':' + port, some_ip,
+                               {'origin': ip + ':' + port,
+                                'id': node_id})
+        add(req)
     elif check == -1:
         add()
 
 
 def update(req):
-    global lower_bound, upper_bound
+    global lower_bound, upper_bound, lower_bound_ip, upper_bound_ip
     socket.connect('tcp://' + req['from'])
     socket.send('update request receive!')
     # print req
     lower_bound = req['msg']['lower_bound']
+    lower_bound_ip = req['msg']['lower_bound_ip']
     upper_bound = req['msg']['upper_bound']
+    upper_bound_ip = req['msg']['upper_bound_ip']
 
 
 def main():
@@ -112,7 +125,8 @@ def main():
         fnode.node_listener(port, socket)
         get_edges(some_ip)
 
-        fnode.node_info(node_id, lower_bound, upper_bound)
+        fnode.node_info(node_id, lower_bound_ip, upper_bound_ip, lower_bound,
+                        upper_bound)
 
         while True:
             #  Wait for next request from client
@@ -127,10 +141,10 @@ def main():
             if req_json['req'] == 'update':
                 print 'Updating node information...'
                 update(req_json)
-                fnode.node_info(node_id, lower_bound, upper_bound)
+                fnode.node_info(node_id, lower_bound_ip, upper_bound_ip,
+                                lower_bound, upper_bound)
             # else:
             #     socket.send("Waiting...")
-
             time.sleep(1)
 
             #  Send reply back to client

@@ -9,9 +9,11 @@ import time
 import zmq
 
 
-def node_info(node_id, lower_bound, upper_bound):
+def node_info(node_id, lower_bound_ip, upper_bound_ip, lower_bound,
+              upper_bound):
     print '#############'
     print 'My ID -->' + node_id[0:7]
+    print 'back and front IPs -> ' + lower_bound_ip + '  ' + upper_bound_ip
     print 'back and front -> ' + lower_bound[0:7] + '  ' + upper_bound[0:7]
     print '#############'
 
