@@ -21,6 +21,7 @@ ip = ''
 port = ''
 context = zmq.Context()
 socket = context.socket(zmq.REP)
+socket_send = context.socket(zmq.REQ)
 
 
 # Get a random id. Put in config.json id, port
@@ -37,10 +38,11 @@ def get_edges(some_ip):
     global lower_bound, upper_bound
     if some_ip:
         # print some_ip
-        req = fnode.create_req(ip, port, 'add', some_ip)
+        req = fnode.create_req('add', ip + ':' + port, some_ip,
+                               {'origin': ip + ':' + port,
+                                'id': node_id})
         req_json = json.loads(req)
         print 'Connecting to ' + req_json['to'] + '...'
-        socket_send = context.socket(zmq.REQ)
         socket_send.connect('tcp://' + req_json['to'])
         print("Sending request %s ..." % req)
         # socket_send.send("Hello")
@@ -52,6 +54,29 @@ def get_edges(some_ip):
     else:  # If I'm the first node in the ring
         print 'Soy el unico'
         lower_bound = upper_bound = node_id
+
+
+def add(req):
+    global node_id, lower_bound, upper_bound
+    socket.send('add')
+    # print req['msg']['id'][0:7]
+    check = fnode.check_rank(node_id, lower_bound, req['msg']['id'])
+    print check
+    # Check if a new node is mine
+    if check == 0:
+        socket_send.connect('tcp://' + req['msg']['origin'])
+        res = fnode.create_req(
+            'update', ip + ':' + port, req['msg']['origin'],
+            {'lower_bound': lower_bound,
+             'upper_bound': node_id})
+        # req_json = json.loads(req)
+        socket_send.send(res)
+
+        if node_id == upper_bound:
+            upper_bound = req['msg']['id']
+        lower_bound = req['msg']['id']
+        fnode.node_info(node_id, lower_bound, upper_bound)
+    # else:
 
 
 def main():
@@ -72,11 +97,11 @@ def main():
         my_ip = sys.argv[1]
         get_id(my_ip)  # Arguments to variables python
         print 'IP ->' + ip + ' , PORT ->' + port
-        print 'My ID -->' + node_id[0:7]
         #
         fnode.node_listener(port, socket)
         get_edges(some_ip)
-        print 'back and front -> ' + lower_bound[0:7] + '  ' + upper_bound[0:7]
+
+        fnode.node_info(node_id, lower_bound, upper_bound)
 
         while True:
             #  Wait for next request from client
@@ -85,10 +110,9 @@ def main():
             print str(message)
             #  Do some 'work'
             if req_json['req'] == 'add':
-                socket.send('add')
-                print fnode.check_rank(
-                    node_id,
-                    lower_bound, )
+                add(req_json)
+            if req_json['req'] == 'update':
+                
             else:
                 socket.send("Waiting...")
 

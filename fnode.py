@@ -9,6 +9,13 @@ import time
 import zmq
 
 
+def node_info(node_id, lower_bound, upper_bound):
+    print '#############'
+    print 'My ID -->' + node_id[0:7]
+    print 'back and front -> ' + lower_bound[0:7] + '  ' + upper_bound[0:7]
+    print '#############'
+
+
 def sha256(toHash):
     return str(hashlib.sha256(str(toHash)).hexdigest())
 
@@ -25,17 +32,15 @@ def node_listener(port, socket):
 
 
 # Create a JSON request
-def create_req(ip, port, to, req, msg):
-    data = json.dumps({
-        'from': ip + ':' + port,
-        'to': to,
-        'req': req,
-        'msg': msg
-    })
+def create_req(req, who, to, msg):
+    data = json.dumps({'req': req, 'from': who, 'to': to, 'msg': msg})
     return data
 
 
 def check_rank(node, lower, target):
-    if target <= node and target > lower:
-        return True
-    return False
+    if (target <= node and target > lower) or node == lower:
+        return 0
+    elif target > node:
+        return 1
+    else:
+        return -1
