@@ -49,7 +49,7 @@ def get_edges(some_ip):
         socket_send.send(req)
 
         message = socket_send.recv()
-        print message
+        # print message
 
     else:  # If I'm the first node in the ring
         print 'Soy el unico'
@@ -69,14 +69,25 @@ def add(req):
             'update', ip + ':' + port, req['msg']['origin'],
             {'lower_bound': lower_bound,
              'upper_bound': node_id})
-        # req_json = json.loads(req)
         socket_send.send(res)
 
         if node_id == upper_bound:
             upper_bound = req['msg']['id']
         lower_bound = req['msg']['id']
         fnode.node_info(node_id, lower_bound, upper_bound)
-    # else:
+    elif check == 1:
+        add()
+    elif check == -1:
+        add()
+
+
+def update(req):
+    global lower_bound, upper_bound
+    socket.connect('tcp://' + req['from'])
+    socket.send('update request receive!')
+    # print req
+    lower_bound = req['msg']['lower_bound']
+    upper_bound = req['msg']['upper_bound']
 
 
 def main():
@@ -105,16 +116,20 @@ def main():
 
         while True:
             #  Wait for next request from client
+            print 'Waiting Request...'
             message = socket.recv()
             req_json = json.loads(str(message))
             print str(message)
             #  Do some 'work'
             if req_json['req'] == 'add':
+                print 'Adding new node'
                 add(req_json)
             if req_json['req'] == 'update':
-                
-            else:
-                socket.send("Waiting...")
+                print 'Updating node information...'
+                update(req_json)
+                fnode.node_info(node_id, lower_bound, upper_bound)
+            # else:
+            #     socket.send("Waiting...")
 
             time.sleep(1)
 
