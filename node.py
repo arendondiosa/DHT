@@ -11,16 +11,20 @@ import numpy
 import zmq
 
 import fnode
+import ring
 
 #Node data
-node_id = ''
 hash_table = {}
-lower_bound = ''  # predecessor's id
-upper_bound = ''  # successor's id
-lower_bound_ip = ''  # predecessor's id
-upper_bound_ip = ''  # successor's id
-ip = ''
-port = ''
+
+node = json.dumps({
+    'ip': '',
+    'port': '',
+    'id': '',
+    'lower_bound': '',
+    'lower_bound_ip': '',
+})
+node = json.loads(node)
+
 context = zmq.Context()
 socket = context.socket(zmq.REP)
 socket_send = context.socket(zmq.REQ)
@@ -28,83 +32,34 @@ socket_send = context.socket(zmq.REQ)
 
 # Get a random id. Put in config.json id, port
 def get_id(my_ip):
-    global ip, port, node_id
-    rnd = random.randint(0, 100)
-    ip, port = my_ip.split(':')
-    print ip
-    node_id = fnode.sha256(rnd)
+    global node
+    rnd = random.randint(0, 2000)
+    node['ip'], node['port'] = my_ip.split(':')
+    # print ip
+    node['id'] = fnode.sha256(rnd)
 
 
-# Get next nodes in the ring
 def get_edges(some_ip):
-    global lower_bound, upper_bound, lower_bound_ip, upper_bound_ip
+    global upper_bound, upper_bound_ip, lower_bound, lower_bound_ip
     if some_ip:
-        # print some_ip
-        req = fnode.create_req('add', ip + ':' + port, some_ip,
-                               {'origin': ip + ':' + port,
-                                'id': node_id})
-        req_json = json.loads(req)
-        print 'Connecting to ' + req_json['to'] + '...'
-        socket_send.connect('tcp://' + req_json['to'])
-        print("Sending request %s ..." % req)
-        # socket_send.send("Hello")
-        socket_send.send(req)
-
+        print 'Other node in the ring'
+        req_add = fnode.create_req(
+            'add', node['ip'] + ':' + node['port'], some_ip,
+            {'origin': node['ip'] + ':' + node['port'],
+             'id': node['id']})
+        req_add_json = json.loads(req_add)
+        socket_send.connect('tcp://' + req_add_json['to'])
+        fnode.printJSON(req_add_json)
+        socket_send.send(req_add)
         message = socket_send.recv()
-        # print message
-
-    else:  # If I'm the first node in the ring
-        print 'Soy el unico'
-        lower_bound = upper_bound = node_id
-        lower_bound_ip = upper_bound_ip = ip + ':' + port
-
-
-def add(req):
-    global node_id, lower_bound_ip, upper_bound_ip, lower_bound, upper_bound
-    socket.send('add')
-    check = fnode.check_rank(node_id, lower_bound, req['msg']['id'])
-    print check
-    # Check if a new node is mine
-    if check == 0:
-        socket_send.connect('tcp://' + req['msg']['origin'])
-        res = fnode.create_req('update', ip + ':' + port, req['msg']['origin'],
-                               {
-                                   'lower_bound': lower_bound,
-                                   'lower_bound_ip': lower_bound_ip,
-                                   'upper_bound': node_id,
-                                   'upper_bound_ip': ip + ':' + port
-                               })
-        socket_send.send(res)
-
-        if node_id == upper_bound:
-            upper_bound = req['msg']['id']
-            upper_bound_ip = req['msg']['origin']
-        lower_bound = req['msg']['id']
-        lower_bound_ip = req['msg']['origin']
-        fnode.node_info(node_id, lower_bound_ip, upper_bound_ip, lower_bound,
-                        upper_bound)
-    elif check == 1:
-        req = fnode.create_req('add', ip + ':' + port, some_ip,
-                               {'origin': ip + ':' + port,
-                                'id': node_id})
-        add(req)
-    elif check == -1:
-        add()
-
-
-def update(req):
-    global lower_bound, upper_bound, lower_bound_ip, upper_bound_ip
-    socket.connect('tcp://' + req['from'])
-    socket.send('update request receive!')
-    # print req
-    lower_bound = req['msg']['lower_bound']
-    lower_bound_ip = req['msg']['lower_bound_ip']
-    upper_bound = req['msg']['upper_bound']
-    upper_bound_ip = req['msg']['upper_bound_ip']
+        print message
+    else:
+        node['lower_bound'] = node['id']
+        node['lower_bound_ip'] = node['ip'] + ':' + node['port']
 
 
 def main():
-    global ip, port, socket
+    global node, socket
     print len(sys.argv)
     my_ip = some_ip = ''
 
@@ -120,34 +75,27 @@ def main():
     if len(sys.argv) >= 2:
         my_ip = sys.argv[1]
         get_id(my_ip)  # Arguments to variables python
-        print 'IP ->' + ip + ' , PORT ->' + port
-        #
-        fnode.node_listener(port, socket)
+        fnode.node_listener(node['port'], socket)
         get_edges(some_ip)
 
-        fnode.node_info(node_id, lower_bound_ip, upper_bound_ip, lower_bound,
-                        upper_bound)
+        fnode.node_info(node)
 
         while True:
             #  Wait for next request from client
             print 'Waiting Request...'
             message = socket.recv()
+            # print str(message)
             req_json = json.loads(str(message))
-            print str(message)
-            #  Do some 'work'
+            # #  Do some 'work'
+            socket.connect('tcp://' + req_json['from'])
             if req_json['req'] == 'add':
                 print 'Adding new node'
-                add(req_json)
-            if req_json['req'] == 'update':
-                print 'Updating node information...'
-                update(req_json)
-                fnode.node_info(node_id, lower_bound_ip, upper_bound_ip,
-                                lower_bound, upper_bound)
-            # else:
-            #     socket.send("Waiting...")
-            time.sleep(1)
-
-            #  Send reply back to client
+                socket.send(node['ip'] + ':' + node['port'] + ' --> recv add')
+                ring.add(req_json)
+            # if req_json['req'] == 'update':
+            #     print 'Updating node information...'
+            #     socket.send(ip + ':' + port + ' -->  rec to update')
+            #     update(req_json)
 
 
 if __name__ == '__main__':

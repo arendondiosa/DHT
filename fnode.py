@@ -9,12 +9,12 @@ import time
 import zmq
 
 
-def node_info(node_id, lower_bound_ip, upper_bound_ip, lower_bound,
-              upper_bound):
+def node_info(node):
     print '#############'
-    print 'My ID -->' + node_id[0:7]
-    print 'back and front IPs -> ' + lower_bound_ip + '  ' + upper_bound_ip
-    print 'back and front -> ' + lower_bound[0:7] + '  ' + upper_bound[0:7]
+    print 'My IP -->' + node['ip']
+    print 'My ID -->' + node['id'][0:7]
+    print 'back IP -> ' + node['lower_bound_ip']
+    print 'back -> ' + node['lower_bound'][0:7]
     print '#############'
 
 
@@ -29,6 +29,10 @@ def load_json(path):
     return d
 
 
+def printJSON(varJSON):
+    print json.dumps(varJSON, indent=2, sort_keys=True)
+
+
 def node_listener(port, socket):
     socket.bind('tcp://*:' + port)
 
@@ -39,10 +43,12 @@ def create_req(req, who, to, msg):
     return data
 
 
-def check_rank(node, lower, target):
-    if (target <= node and target > lower) or node == lower:
+def check_rank(my_id, lower_id, target):
+    if my_id == lower_id:
+        return 2
+    elif (target <= my_id and target > lower_id):
         return 0
-    elif target > node:
+    elif (target > my_id):
         return 1
-    else:
+    elif (target <= lower_id):
         return -1
