@@ -20,6 +20,12 @@ pip install json
 pip install hashlib
 ```
 
+### [Termcolor](https://pypi.python.org/pypi/termcolor)
+
+```bash
+pip install termcolor
+```
+
 ## Run
 
 ### node
@@ -32,3 +38,5 @@ Otherwise
 ```bash
 python node.py <my_ip>:<port> <other_node_ip>:<port>
 ```
+
+### client
