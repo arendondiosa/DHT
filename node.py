@@ -31,17 +31,20 @@ socket_send = context.socket(zmq.REQ)
 
 
 # Get a random id. Put in config.json id, port
-def get_id(my_ip):
+def get_id(my_ip, socket):
     global node
     rnd = random.randint(0, 2000)
     node['ip'], node['port'] = my_ip.split(':')
-    # print ip
     node['id'] = fnode.sha256(rnd)
+    socket.bind('tcp://*:' + node['port'])
 
 
+# Get edges
 def get_edges(some_ip):
     global upper_bound, upper_bound_ip, lower_bound, lower_bound_ip
     if some_ip:
+        node['lower_bound'] = ''
+        node['lower_bound_ip'] = ''
         print 'Other node in the ring'
         req_add = fnode.create_req(
             'add', node['ip'] + ':' + node['port'], some_ip,
@@ -68,14 +71,13 @@ def main():
         print my_ip
         some_ip = sys.argv[2]
     elif len(sys.argv) == 2:
-        print 'Nadie'
+        print 'Number 1'
     else:
-        print 'Faltan argv'
+        print 'No argv'
 
     if len(sys.argv) >= 2:
         my_ip = sys.argv[1]
-        get_id(my_ip)  # Arguments to variables python
-        fnode.node_listener(node['port'], socket)
+        get_id(my_ip, socket)  # Arguments to variables python
         get_edges(some_ip)
 
         fnode.node_info(node)
@@ -91,11 +93,14 @@ def main():
             if req_json['req'] == 'add':
                 print 'Adding new node'
                 socket.send(node['ip'] + ':' + node['port'] + ' --> recv add')
-                ring.add(req_json)
-            # if req_json['req'] == 'update':
-            #     print 'Updating node information...'
-            #     socket.send(ip + ':' + port + ' -->  rec to update')
-            #     update(req_json)
+                socket_send = context.socket(zmq.REQ)
+                ring.add(node, req_json, socket_send)
+            if req_json['req'] == 'update':
+                print 'Updating node information...'
+                socket_send = context.socket(zmq.REQ)
+                socket.send(node['ip'] + ':' + node['port'] +
+                            ' -->  rec to update')
+                ring.update(node, req_json)
 
 
 if __name__ == '__main__':

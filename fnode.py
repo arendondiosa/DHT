@@ -11,7 +11,7 @@ import zmq
 
 def node_info(node):
     print '#############'
-    print 'My IP -->' + node['ip']
+    print 'My IP -->' + node['ip'] + ':' + node['port']
     print 'My ID -->' + node['id'][0:7]
     print 'back IP -> ' + node['lower_bound_ip']
     print 'back -> ' + node['lower_bound'][0:7]
@@ -33,10 +33,6 @@ def printJSON(varJSON):
     print json.dumps(varJSON, indent=2, sort_keys=True)
 
 
-def node_listener(port, socket):
-    socket.bind('tcp://*:' + port)
-
-
 # Create a JSON request
 def create_req(req, who, to, msg):
     data = json.dumps({'req': req, 'from': who, 'to': to, 'msg': msg})
@@ -44,11 +40,13 @@ def create_req(req, who, to, msg):
 
 
 def check_rank(my_id, lower_id, target):
-    if my_id == lower_id:
-        return 2
-    elif (target <= my_id and target > lower_id):
-        return 0
-    elif (target > my_id):
-        return 1
-    elif (target <= lower_id):
-        return -1
+    if lower_id > my_id:
+        if target > lower_id or (target >= 0 and target < my_id):
+            return 0
+        else:
+            return -1
+    else:
+        if (target <= my_id and target > lower_id) or (my_id == lower_id):
+            return 0
+        else:
+            return -1
