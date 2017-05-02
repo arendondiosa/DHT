@@ -63,6 +63,8 @@ def get_edges(some_ip):
 
 def main():
     global node, socket
+
+    fnode.clear()
     print len(sys.argv)
     my_ip = some_ip = ''
 
@@ -95,12 +97,14 @@ def main():
                 socket.send(node['ip'] + ':' + node['port'] + ' --> recv add')
                 socket_send = context.socket(zmq.REQ)
                 ring.add(node, req_json, socket_send)
-            if req_json['req'] == 'update':
+            elif req_json['req'] == 'update':
                 print 'Updating node information...'
                 socket_send = context.socket(zmq.REQ)
                 socket.send(node['ip'] + ':' + node['port'] +
                             ' -->  rec to update')
                 ring.update(node, req_json)
+            else:
+                print message
 
 
 if __name__ == '__main__':

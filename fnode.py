@@ -9,6 +9,10 @@ import time
 import zmq
 
 
+def clear():
+    sys.stderr.write("\x1b[2J\x1b[H")
+
+
 def node_info(node):
     print '#############'
     print 'My IP -->' + node['ip'] + ':' + node['port']

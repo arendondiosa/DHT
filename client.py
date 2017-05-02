@@ -11,11 +11,11 @@ import numpy
 import zmq
 from termcolor import colored
 
-import ffile
 import fclient
+import ffile
 
 #client data
-client = json.dumps({'ip': '', 'port': '', 'data': []})
+client = json.dumps({'ip': '', 'port': '', 'data': {}})
 client = json.loads(client)
 
 context = zmq.Context()
@@ -25,10 +25,11 @@ socket_send = context.socket(zmq.REQ)
 
 def get_id(my_ip):
     client['ip'], client['port'] = my_ip.split(':')
+    socket.bind('tcp://*:' + client['port'])
 
 
 def main():
-    global client
+    global client, socket, socket_send
     my_ip = some_ip = ''
 
     if len(sys.argv) == 3:
@@ -45,37 +46,49 @@ def main():
         fclient.client_info(client)
         fclient.clear()
         print colored(
-            'Welcome to CHORD simulation', 'yellow',
-            attrs=['bold']), colored('Terminal', 'yellow')
-        while True:
-            print colored(
-                '(Type help or -h for more information)',
-                'yellow',
-                attrs=['reverse'])
-            inp = raw_input(colored('$ >> ', 'cyan'))
-            inp = inp.split()
+            'Welcome to CHORD simulation', 'yellow', attrs=['bold']), colored(
+                'Terminal', 'yellow')
+        try:
+            while True:
+                print colored(
+                    '(Type help or -h for more information)',
+                    'yellow',
+                    attrs=['reverse'])
+                inp = raw_input(colored('$ >> ', 'cyan'))
+                inp = inp.split()
 
-            if inp[0] == 'help' or inp[0] == '-h':
-                fclient.options()
-            elif inp[0] == 'send' or inp[0] == '-s':
-                file_info = json.dumps({
-                    'req': 'save',
-                    'from': my_ip,
-                    'to': some_ip,
-                    'data': fclient.get_file(inp[1]),
-                    'name': fclient.get_filename(inp[1])
-                })
-                file_info_json = json.loads(file_info)
-                fclient.printJSON(file_info_json)
+                if inp[0] == 'help' or inp[0] == '-h':
+                    fclient.options()
+                elif inp[0] == 'send' or inp[0] == '-s':
+                    send_req = fclient.send_msg(client, some_ip, inp)
+                    if send_req == 'Err: No file':
+                        print colored('Send a correct file', 'red')
+                    else:
+                        socket_send = context.socket(zmq.REQ)
+                        fclient.send(send_req, socket_send)
+                        # Get the res to my req
+                        message = socket.recv()
+                        socket.send('<3 Thanks')
 
-                # TO DO: SAVE REQ IN NODE
+                elif inp[0] == 'exit':
+                    print colored('See you later', 'yellow')
+                    break
+                else:
+                    print colored('Type a correct option', 'red')
 
-            elif inp[0] == 'exit':
-                print colored('See you later', 'yellow')
-                break
-            else:
-                print colored('Type a correct option', 'red')
+                    socket_send.connect('tcp://' + inp[0])
+                    print colored(
+                        'connection to ' + 'tcp://' + inp[0],
+                        'yellow',
+                        attrs=['bold'])
+                    socket_send.send(json.dumps({'msg': ':)'}))
+                    message = socket_send.recv()
+                    print colored(message, 'green')
+                print ''
+        except KeyboardInterrupt:
             print ''
+            print colored('See you later', 'yellow')
+            exit(0)
 
 
 if __name__ == '__main__':
