@@ -43,3 +43,14 @@ python node.py <my_ip>:<port> <other_node_ip>:<port>
 ```bash
 python node.py <my_ip>:<port> <some_node_ring>:<port>
 ```
+
+#### Options
+```
+Options
+exit                      ->    Close client connection
+-g, get <sha256>          ->    Get file
+-h, help                  ->    Get help
+ls                        ->    List of my files in DHT
+-rm, remove <sha256>      ->    Remove file from DHT
+-s or send <filename.ext> ->    Send a file
+```
