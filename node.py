@@ -116,6 +116,12 @@ def main():
                 socket.send(node['ip'] + ':' + node['port'] +
                             ' -->  rec to remove file')
                 ring.remove_file(node, req_json, socket_send)
+            elif req_json['req'] == 'get':
+                print colored('Getting the file...', 'green')
+                socket_send = context.socket(zmq.REQ)
+                socket.send(node['ip'] + ':' + node['port'] +
+                            ' -->  rec to get file')
+                ring.get_file(node, req_json, socket_send)
             else:
                 print message
 

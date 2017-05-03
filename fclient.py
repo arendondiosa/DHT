@@ -116,3 +116,18 @@ def remove_msg(client, to, inp):
         return file_info_json
     else:
         return 'Err: No file'
+
+
+def get_msg(client, to, inp):
+    file_info = json.dumps({
+        'req': 'get',
+        'from': client['ip'] + ':' + client['port'],
+        'to': to,
+        'id': inp[1],
+        'node_origin': to,
+        'client_origin': client['ip'] + ':' + client['port']
+    })
+    file_info_json = json.loads(file_info)
+
+    printJSON(file_info_json)
+    return file_info_json

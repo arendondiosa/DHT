@@ -27,3 +27,9 @@ def get_filename(path):
 
 def sha256(toHash):
     return str(hashlib.sha256(str(toHash)).hexdigest())
+
+
+def write_file(data):
+    file = open('Downloads/' + data['name'], 'wb')
+    file.write(fclient.hexToDec(data['data']))
+    file.close()

@@ -81,6 +81,27 @@ def main():
                         socket_send.send(json.dumps(remove_req))
                         message = socket_send.recv()
                         print colored(message, 'green')
+                elif inp[0] == '-g' or inp[0] == 'get':
+                    get_req = fclient.get_msg(client, some_ip, inp)
+                    socket_send = context.socket(zmq.REQ)
+                    socket_send.connect('tcp://' + get_req['to'])
+                    socket_send.send(json.dumps(get_req))
+                    message = socket_send.recv()
+                    print colored(message, 'green')
+
+                    message = socket.recv()
+                    message = json.loads(message)
+                    print message
+                    socket.connect('tcp://' + message['from'])
+                    socket.send('Thanks <3')
+
+                    if message['info'] == 'No':
+                        print colored(
+                            'File does not exist in DHT',
+                            'red',
+                            attrs=['bold'])
+                    else:
+                        ffile.write_file(message['info'])
                 elif inp[0] == 'exit':
                     print colored('See you later', 'yellow')
                     break

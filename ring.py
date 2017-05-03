@@ -7,6 +7,7 @@ import sys
 import time
 
 import zmq
+from termcolor import colored
 
 import fnode
 
@@ -105,3 +106,64 @@ def remove_file(node, req, socket_send):
         socket_send.send(req_remove)
         message = socket_send.recv()
         print message
+
+
+def check_file(node, file_id):
+    for i in node:
+        print i
+        if i == file_id:
+            return node[i]
+            break
+    return 'No file'
+
+
+def get_file(node, req, socket_send):
+    fnode.printJSON(req)
+    check = check_file(node['file'], req['id'])
+
+    if check != 'No file':
+        print colored(check, 'cyan')
+        # fnode.node_info(node)
+        req_send = json.dumps({
+            'from': node['ip'] + ':' + node['port'],
+            'to': req['client_origin'],
+            'info': check
+        })
+
+        req_send_json = json.loads(req_send)
+        socket_send.connect('tcp://' + req_send_json['to'])
+        socket_send.send(req_send)
+        message = socket_send.recv()
+        print message
+
+    else:
+        print colored('File does not exist in this node :(', 'red')
+
+        if req['node_origin'] == node['lower_bound_ip']:
+            req_send = json.dumps({
+                'from': node['ip'] + ':' + node['port'],
+                'to': req['client_origin'],
+                'info': 'No'
+            })
+
+            req_send_json = json.loads(req_send)
+            socket_send.connect('tcp://' + req_send_json['to'])
+            socket_send.send(req_send)
+            message = socket_send.recv()
+            print message
+
+        else:
+            get_req = json.dumps({
+                'req': 'get',
+                'from': req['from'],
+                'to': node['lower_bound_ip'],
+                'id': req['id'],
+                'node_origin': req['node_origin'],
+                'client_origin': req['client_origin']
+            })
+            get_req_json = json.loads(get_req)
+
+            socket_send.connect('tcp://' + get_req_json['to'])
+            socket_send.send(get_req)
+            message = socket_send.recv()
+            print colored(message, 'green')
