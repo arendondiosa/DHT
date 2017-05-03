@@ -55,3 +55,29 @@ def update(node, req):
 
     print '############ UPDATE OK'
     fnode.node_info(node)
+
+
+def save(node, req, socket_send):
+    fnode.printJSON(req)
+    check = fnode.check_rank(node['id'], node['lower_bound'], req['id'])
+    print 'CHECK --> ' + str(check)
+
+    if check == 0:
+        fnode.file_to_ring(node, req['name'], req['data'], req['id'])
+
+        fnode.node_info(node)
+    elif check == -1:
+        req_save = json.dumps({
+            'req': 'save',
+            'from': node['ip'] + ':' + node['port'],
+            'to': node['lower_bound_ip'],
+            'data': req['data'],
+            'name': req['name'],
+            'id': req['id']
+        })
+        req_save_json = json.loads(req_save)
+        socket_send.connect('tcp://' + req_save_json['to'])
+        # fnode.printJSON(req_add_json)
+        socket_send.send(req_save)
+        message = socket_send.recv()
+        print message

@@ -9,12 +9,12 @@ import time
 
 import numpy
 import zmq
+from termcolor import colored
 
 import fnode
 import ring
 
 #Node data
-hash_table = {}
 
 node = json.dumps({
     'ip': '',
@@ -22,6 +22,7 @@ node = json.dumps({
     'id': '',
     'lower_bound': '',
     'lower_bound_ip': '',
+    'file': {}
 })
 node = json.loads(node)
 
@@ -103,6 +104,12 @@ def main():
                 socket.send(node['ip'] + ':' + node['port'] +
                             ' -->  rec to update')
                 ring.update(node, req_json)
+            elif req_json['req'] == 'save':
+                print colored('Saving the new file...', 'green')
+                socket_send = context.socket(zmq.REQ)
+                socket.send(node['ip'] + ':' + node['port'] +
+                            ' -->  rec to save info')
+                ring.save(node, req_json, socket_send)
             else:
                 print message
 

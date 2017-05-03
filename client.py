@@ -46,8 +46,8 @@ def main():
         fclient.client_info(client)
         fclient.clear()
         print colored(
-            'Welcome to CHORD simulation', 'yellow', attrs=['bold']), colored(
-                'Terminal', 'yellow')
+            'Welcome to CHORD simulation', 'yellow',
+            attrs=['bold']), colored('Terminal', 'yellow')
         try:
             while True:
                 print colored(
@@ -65,25 +65,26 @@ def main():
                         print colored('Send a correct file', 'red')
                     else:
                         socket_send = context.socket(zmq.REQ)
-                        fclient.send(send_req, socket_send)
-                        # Get the res to my req
-                        message = socket.recv()
-                        socket.send('<3 Thanks')
+                        socket_send.connect('tcp://' + send_req['to'])
+                        # fclient.send(send_req, socket_send)
+                        socket_send.send(json.dumps(send_req))
+                        message = socket_send.recv()
+                        print colored(message, 'green')
 
                 elif inp[0] == 'exit':
                     print colored('See you later', 'yellow')
                     break
                 else:
                     print colored('Type a correct option', 'red')
-
-                    socket_send.connect('tcp://' + inp[0])
-                    print colored(
-                        'connection to ' + 'tcp://' + inp[0],
-                        'yellow',
-                        attrs=['bold'])
-                    socket_send.send(json.dumps({'msg': ':)'}))
-                    message = socket_send.recv()
-                    print colored(message, 'green')
+                #
+                #     socket_send.connect('tcp://' + inp[0])
+                #     print colored(
+                #         'connection to ' + 'tcp://' + inp[0],
+                #         'yellow',
+                #         attrs=['bold'])
+                #     socket_send.send(json.dumps({'msg': ':)'}))
+                #     message = socket_send.recv()
+                #     print colored(message, 'green')
                 print ''
         except KeyboardInterrupt:
             print ''

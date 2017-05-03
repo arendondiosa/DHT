@@ -7,19 +7,27 @@ import sys
 import time
 
 import zmq
+from termcolor import colored
 
 
 def clear():
     sys.stderr.write("\x1b[2J\x1b[H")
 
 
+def node_data(data):
+    for i in data:
+        print colored(i, 'magenta')
+
+
 def node_info(node):
-    print '#############'
-    print 'My IP -->' + node['ip'] + ':' + node['port']
-    print 'My ID -->' + node['id'][0:7]
-    print 'back IP -> ' + node['lower_bound_ip']
-    print 'back -> ' + node['lower_bound'][0:7]
-    print '#############'
+    print colored('#############', 'magenta')
+    print colored('My IP -->' + node['ip'] + ':' + node['port'], 'magenta')
+    print colored('My ID -->' + node['id'][0:7], 'magenta')
+    print colored('back IP -> ' + node['lower_bound_ip'], 'magenta')
+    print colored('back -> ' + node['lower_bound'][0:7], 'magenta')
+    print colored('FILES: ', 'magenta')
+    node_data(node['file'])
+    print colored('#############', 'magenta')
 
 
 def sha256(toHash):
@@ -54,3 +62,7 @@ def check_rank(my_id, lower_id, target):
             return 0
         else:
             return -1
+
+
+def file_to_ring(node, filename, binary, fileid):
+    node['file'][fileid] = {'name': filename, 'data': binary}
