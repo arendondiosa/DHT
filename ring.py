@@ -81,3 +81,27 @@ def save(node, req, socket_send):
         socket_send.send(req_save)
         message = socket_send.recv()
         print message
+
+
+def remove_file(node, req, socket_send):
+    fnode.printJSON(req)
+    check = fnode.check_rank(node['id'], node['lower_bound'], req['id'])
+    print 'CHECK --> ' + str(check)
+
+    if check == 0:
+        fnode.remove_file_ring(node, req['id'])
+
+        fnode.node_info(node)
+    elif check == -1:
+        req_remove = json.dumps({
+            'req': 'remove',
+            'from': node['ip'] + ':' + node['port'],
+            'to': node['lower_bound_ip'],
+            'id': req['id']
+        })
+        req_remove_json = json.loads(req_remove)
+        socket_send.connect('tcp://' + req_remove_json['to'])
+        # fnode.printJSON(req_add_json)
+        socket_send.send(req_remove)
+        message = socket_send.recv()
+        print message

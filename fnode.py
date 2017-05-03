@@ -66,3 +66,7 @@ def check_rank(my_id, lower_id, target):
 
 def file_to_ring(node, filename, binary, fileid):
     node['file'][fileid] = {'name': filename, 'data': binary}
+
+
+def remove_file_ring(node, fileid):
+    del node['file'][fileid]

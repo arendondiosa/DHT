@@ -103,10 +103,10 @@ def remove_msg(client, to, inp):
 
     if flag:
         file_info = json.dumps({
-            'req': 'rm',
+            'req': 'remove',
             'from': client['ip'] + ':' + client['port'],
             'to': to,
-            'id': inp
+            'id': inp[1]
         })
         file_info_json = json.loads(file_info)
 
@@ -116,12 +116,3 @@ def remove_msg(client, to, inp):
         return file_info_json
     else:
         return 'Err: No file'
-
-
-def send(req, socket):
-    socket.connect('tcp://' + req['to'])
-    print colored(
-        'connection to ' + 'tcp://' + req['to'], 'yellow', attrs=['bold'])
-    socket.send(json.dumps(req))
-    message = socket.recv()
-    print colored(message, 'green')

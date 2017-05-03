@@ -66,7 +66,6 @@ def main():
                     else:
                         socket_send = context.socket(zmq.REQ)
                         socket_send.connect('tcp://' + send_req['to'])
-                        # fclient.send(send_req, socket_send)
                         socket_send.send(json.dumps(send_req))
                         message = socket_send.recv()
                         print colored(message, 'green')
@@ -79,10 +78,9 @@ def main():
                     else:
                         socket_send = context.socket(zmq.REQ)
                         socket_send.connect('tcp://' + remove_req['to'])
-                        # fclient.send(send_req, socket_send)
-                        # socket_send.send(json.dumps(send_req))
-                        # message = socket_send.recv()
-                        # print colored(message, 'green')
+                        socket_send.send(json.dumps(remove_req))
+                        message = socket_send.recv()
+                        print colored(message, 'green')
                 elif inp[0] == 'exit':
                     print colored('See you later', 'yellow')
                     break
