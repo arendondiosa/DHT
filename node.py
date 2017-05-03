@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/env/bin/python
 
 import hashlib
 import json

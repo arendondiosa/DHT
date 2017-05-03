@@ -2,29 +2,26 @@
 Distributed Hash Table - CHORD Example
 
 ## Dependencies
-### [ØMQ (ZeroMQ)](http://zeromq.org)
 
+### Python virtualEnv
+
+* Install
 ```bash
-pip install zmp
+apt-get install python-virtualenv
 ```
 
-### [JSON](https://docs.python.org/2/library/json.html)
-
+* Create Environment
 ```bash
-pip install json
+mkdir env
+virtualenv env
+env/bin/pip install -r requirements.txt
 ```
 
-### [HashLib](https://docs.python.org/2/library/hashlib.html)
-
-```bash
-pip install hashlib
-```
-
-### [Termcolor](https://pypi.python.org/pypi/termcolor)
-
-```bash
-pip install termcolor
-```
+### Python dependencies
+* [ØMQ (ZeroMQ)](http://zeromq.org)
+* [JSON](https://docs.python.org/2/library/json.html)
+* [HashLib](https://docs.python.org/2/library/hashlib.html)
+* [Termcolor](https://pypi.python.org/pypi/termcolor)
 
 ## Run
 
@@ -40,17 +37,10 @@ python node.py <my_ip>:<port> <other_node_ip>:<port>
 ```
 
 ### client
+![Terminal](media/terminal.png)
 ```bash
 python node.py <my_ip>:<port> <some_node_ring>:<port>
 ```
 
-#### Options
-```
-Options
-exit                      ->    Close client connection
--g, get <sha256>          ->    Get file
--h, help                  ->    Get help
-ls                        ->    List of my files in DHT
--rm, remove <sha256>      ->    Remove file from DHT
--s or send <filename.ext> ->    Send a file
-```
+#### Client Options
+![Terminal](media/help.png)

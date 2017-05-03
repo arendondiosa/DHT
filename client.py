@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/env/bin/python
 
 import hashlib
 import json
@@ -46,8 +46,8 @@ def main():
         fclient.client_info(client)
         fclient.clear()
         print colored(
-            'Welcome to CHORD simulation', 'yellow',
-            attrs=['bold']), colored('Terminal', 'yellow')
+            'Welcome to CHORD simulation', 'yellow', attrs=['bold']), colored(
+                'Terminal', 'yellow')
         try:
             while True:
                 print colored(

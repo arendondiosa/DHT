@@ -1,4 +1,5 @@
-#!/usr/bin/python
+#!/env/bin/python
+
 import base64
 import hashlib
 import json
@@ -37,12 +38,15 @@ def client_info(client):
 
 def options():
     print colored('Options', 'blue', attrs=['bold'])
-    print colored('    exit   ->    Close client connection', 'blue')
-    print colored('-g, get <sha256>   ->    Get file', 'blue')
-    print colored('-h, help   ->    Get help', 'blue')
-    print colored('ls         ->    List of my files in DHT', 'blue')
-    print colored('-rm, remove <sha256>  ->    Remove file from DHT', 'blue')
-    print colored('-s or send <filename.ext>   ->    Send a file', 'blue')
+    print colored('exit                      ->    Close client connection',
+                  'blue')
+    print colored('-g, get <sha256>          ->    Get file', 'blue')
+    print colored('-h, help                  ->    Get help', 'blue')
+    print colored('ls                        ->    List of my files in DHT',
+                  'blue')
+    print colored('-rm, remove <sha256>      ->    Remove file from DHT',
+                  'blue')
+    print colored('-s or send <filename.ext> ->    Send a file', 'blue')
 
 
 def list_file(client):
