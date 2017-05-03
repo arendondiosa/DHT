@@ -72,6 +72,17 @@ def main():
                         print colored(message, 'green')
                 elif inp[0] == 'ls':
                     fclient.list_file(client)
+                elif inp[0] == '-rm' or inp[0] == 'remove':
+                    remove_req = fclient.remove_msg(client, some_ip, inp)
+                    if remove_req == 'Err: No file':
+                        print colored('Send a correct file', 'red')
+                    else:
+                        socket_send = context.socket(zmq.REQ)
+                        socket_send.connect('tcp://' + remove_req['to'])
+                        # fclient.send(send_req, socket_send)
+                        # socket_send.send(json.dumps(send_req))
+                        # message = socket_send.recv()
+                        # print colored(message, 'green')
                 elif inp[0] == 'exit':
                     print colored('See you later', 'yellow')
                     break

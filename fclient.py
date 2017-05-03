@@ -86,6 +86,38 @@ def send_msg(client, to, inp):
         return 'Err: No file'
 
 
+def remove_local(client, inp):
+    flag = False
+    for i in client['data']:
+        print i
+        if i == inp[1]:
+            flag = True
+            # client['data'][i] = {}
+            del client['data'][i]
+            break
+    return flag
+
+
+def remove_msg(client, to, inp):
+    flag = remove_local(client, inp)
+
+    if flag:
+        file_info = json.dumps({
+            'req': 'rm',
+            'from': client['ip'] + ':' + client['port'],
+            'to': to,
+            'id': inp
+        })
+        file_info_json = json.loads(file_info)
+
+        client_info(client)
+
+        printJSON(file_info_json)
+        return file_info_json
+    else:
+        return 'Err: No file'
+
+
 def send(req, socket):
     socket.connect('tcp://' + req['to'])
     print colored(
