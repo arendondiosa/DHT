@@ -66,7 +66,7 @@ def main():
     global node, socket
 
     fnode.clear()
-    print len(sys.argv)
+    # print len(sys.argv)
     my_ip = some_ip = ''
 
     if len(sys.argv) == 3:
@@ -74,7 +74,7 @@ def main():
         print my_ip
         some_ip = sys.argv[2]
     elif len(sys.argv) == 2:
-        print 'Number 1'
+        print 'Only 1 argv'
     else:
         print 'No argv'
 
@@ -84,46 +84,90 @@ def main():
         get_edges(some_ip)
 
         fnode.node_info(node)
+        try:
+            while True:
+                #  Wait for next request from client
+                print 'Waiting Request...'
+                message = socket.recv()
+                # print str(message)
+                req_json = json.loads(str(message))
+                # #  Do some 'work'
+                socket.connect('tcp://' + req_json['from'])
+                if req_json['req'] == 'add':
+                    print 'Adding new node'
+                    socket.send(node['ip'] + ':' + node['port'] +
+                                ' --> recv add')
+                    socket_send = context.socket(zmq.REQ)
+                    ring.add(node, req_json, socket_send)
+                elif req_json['req'] == 'update':
+                    print 'Updating node information...'
+                    socket_send = context.socket(zmq.REQ)
+                    socket.send(node['ip'] + ':' + node['port'] +
+                                ' -->  rec to update')
+                    ring.update(node, req_json)
+                elif req_json['req'] == 'save':
+                    print colored('Saving the new file...', 'green')
+                    socket_send = context.socket(zmq.REQ)
+                    socket.send(node['ip'] + ':' + node['port'] +
+                                ' -->  rec to save info')
+                    ring.save(node, req_json, socket_send)
+                elif req_json['req'] == 'remove':
+                    print colored('Removing the file...', 'green')
+                    socket_send = context.socket(zmq.REQ)
+                    socket.send(node['ip'] + ':' + node['port'] +
+                                ' -->  rec to remove file')
+                    ring.remove_file(node, req_json, socket_send)
+                elif req_json['req'] == 'get':
+                    print colored('Getting the file...', 'green')
+                    socket_send = context.socket(zmq.REQ)
+                    socket.send(node['ip'] + ':' + node['port'] +
+                                ' -->  rec to get file')
+                    ring.get_file(node, req_json, socket_send)
+                elif req_json['req'] == 'new_connection':
+                    print colored('Connecting the node...', 'green')
+                    socket_send = context.socket(zmq.REQ)
+                    socket.send(node['ip'] + ':' + node['port'] +
+                                ' -->  rec to get file')
+                    ring.search_new_connection(node, req_json['msg'],
+                                               socket_send)
+                elif req_json['req'] == 'out':
+                    print colored('Getting the data...', 'green')
+                    socket_send = context.socket(zmq.REQ)
+                    socket.send(node['ip'] + ':' + node['port'] +
+                                ' -->  rec to out node')
+                    ring.pass_data(node, req_json)
+                else:
+                    print message
+                print ''
+        except KeyboardInterrupt:
+            print ''
+            if (node['ip'] + ':' + node['port']) != node['lower_bound_ip']:
+                out_req = fnode.create_req(
+                    'out', node['ip'] + ':' + node['port'],
+                    node['lower_bound_ip'], node['file'])
+                out_req_json = json.loads(out_req)
 
-        while True:
-            #  Wait for next request from client
-            print 'Waiting Request...'
-            message = socket.recv()
-            # print str(message)
-            req_json = json.loads(str(message))
-            # #  Do some 'work'
-            socket.connect('tcp://' + req_json['from'])
-            if req_json['req'] == 'add':
-                print 'Adding new node'
-                socket.send(node['ip'] + ':' + node['port'] + ' --> recv add')
                 socket_send = context.socket(zmq.REQ)
-                ring.add(node, req_json, socket_send)
-            elif req_json['req'] == 'update':
-                print 'Updating node information...'
-                socket_send = context.socket(zmq.REQ)
-                socket.send(node['ip'] + ':' + node['port'] +
-                            ' -->  rec to update')
-                ring.update(node, req_json)
-            elif req_json['req'] == 'save':
-                print colored('Saving the new file...', 'green')
-                socket_send = context.socket(zmq.REQ)
-                socket.send(node['ip'] + ':' + node['port'] +
-                            ' -->  rec to save info')
-                ring.save(node, req_json, socket_send)
-            elif req_json['req'] == 'remove':
-                print colored('Removing the file...', 'green')
-                socket_send = context.socket(zmq.REQ)
-                socket.send(node['ip'] + ':' + node['port'] +
-                            ' -->  rec to remove file')
-                ring.remove_file(node, req_json, socket_send)
-            elif req_json['req'] == 'get':
-                print colored('Getting the file...', 'green')
-                socket_send = context.socket(zmq.REQ)
-                socket.send(node['ip'] + ':' + node['port'] +
-                            ' -->  rec to get file')
-                ring.get_file(node, req_json, socket_send)
-            else:
-                print message
+                socket_send.connect('tcp://' + out_req_json['to'])
+                socket_send.send(out_req)
+                message = socket_send.recv()
+                print colored(message, 'green')
+
+                ring.search_new_connection(node, {
+                    'node_ip':
+                    node['ip'],
+                    'node_port':
+                    node['port'],
+                    'node_id':
+                    node['id'],
+                    'lower_bound':
+                    node['lower_bound'],
+                    'lower_bound_ip':
+                    node['lower_bound_ip']
+                }, socket_send)
+
+            print colored('See you later', 'yellow')
+            exit(0)
 
 
 if __name__ == '__main__':

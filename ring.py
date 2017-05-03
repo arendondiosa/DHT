@@ -167,3 +167,28 @@ def get_file(node, req, socket_send):
             socket_send.send(get_req)
             message = socket_send.recv()
             print colored(message, 'green')
+
+
+def pass_data(node, req_json):
+    for i in req_json['msg']:
+        node['file'][i] = req_json['msg'][i]
+
+    fnode.node_info(node)
+
+
+def search_new_connection(node, info, socket_send):
+    if node['lower_bound'] == info['node_id']:
+        node['lower_bound'] = info['lower_bound']
+        node['lower_bound_ip'] = info['lower_bound_ip']
+
+        fnode.node_info(node)
+    else:
+        new_req = fnode.create_req('new_connection',
+                                   node['ip'] + ':' + node['port'],
+                                   node['lower_bound_ip'], info)
+        new_req_json = json.loads(new_req)
+
+        socket_send.connect('tcp://' + new_req_json['to'])
+        socket_send.send(new_req)
+        message = socket_send.recv()
+        print colored(message, 'green')
