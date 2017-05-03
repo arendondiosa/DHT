@@ -105,6 +105,12 @@ def main():
                     socket.send(node['ip'] + ':' + node['port'] +
                                 ' -->  rec to update')
                     ring.update(node, req_json)
+                elif req_json['req'] == 'update_file':
+                    print 'Updating files node information...'
+                    socket_send = context.socket(zmq.REQ)
+                    socket.send(node['ip'] + ':' + node['port'] +
+                                ' -->  rec to update file')
+                    ring.update_file_list(node, req_json)
                 elif req_json['req'] == 'save':
                     print colored('Saving the new file...', 'green')
                     socket_send = context.socket(zmq.REQ)
