@@ -70,7 +70,8 @@ def main():
                         socket_send.send(json.dumps(send_req))
                         message = socket_send.recv()
                         print colored(message, 'green')
-
+                elif inp[0] == 'ls':
+                    fclient.list_file(client)
                 elif inp[0] == 'exit':
                     print colored('See you later', 'yellow')
                     break

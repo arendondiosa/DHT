@@ -40,3 +40,6 @@ python node.py <my_ip>:<port> <other_node_ip>:<port>
 ```
 
 ### client
+```bash
+python node.py <my_ip>:<port> <some_node_ring>:<port>
+```

@@ -39,7 +39,15 @@ def options():
     print colored('Options', 'blue', attrs=['bold'])
     print colored('    exit   ->    Close client connection', 'blue')
     print colored('-h, help   ->    Get help', 'blue')
-    print colored('-s or send <filename.ext>   ->    Get help', 'blue')
+    print colored('ls         ->    List of my files in DHT', 'blue')
+    print colored('-s or send <filename.ext>   ->    Send a file', 'blue')
+
+
+def list_file(client):
+    for i in client['data']:
+        print colored(
+            client['data'][i]['name'], 'magenta',
+            attrs=['bold']) + ':' + colored(i, 'magenta')
 
 
 def printJSON(varJSON):
