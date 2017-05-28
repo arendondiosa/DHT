@@ -2,7 +2,6 @@
 Distributed Hash Table - CHORD Example
 
 ## Dependencies
-
 ### Python virtualEnv
 
 * Install
@@ -12,9 +11,12 @@ apt-get install python-virtualenv
 
 * Create Environment
 ```bash
-mkdir env
 virtualenv env
 env/bin/pip install -r requirements.txt
+```
+* _Note: If VirtualEnv fails, run on the terminal_
+```bash
+env/bin/pip install numpy termcolor zmq
 ```
 
 ### Python dependencies
@@ -29,11 +31,11 @@ env/bin/pip install -r requirements.txt
 
 First node
 ```bash
-python node.py <my_ip>:<port>
+env/bin/python node.py <my_ip>:<port>
 ```
 Otherwise
 ```bash
-python node.py <my_ip>:<port> <other_node_ip>:<port>
+env/bin/python node.py <my_ip>:<port> <other_node_ip>:<port>
 ```
 
 ### client
